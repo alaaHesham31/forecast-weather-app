@@ -2,7 +2,6 @@ import 'package:demo_weather_app/services/temperature_unit_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'temperature_unit_dialog.dart'; // Import the temperature dialog widget
-import 'theme_selection_dialog.dart'; // Import the ThemeSelectionDialog
 
 class ShowModal extends StatefulWidget {
   const ShowModal({super.key});
@@ -14,28 +13,10 @@ class ShowModal extends StatefulWidget {
 class _ShowModalState extends State<ShowModal> {
   String _selectedUnit = 'Celsius'; // Default temperature unit
   int _notificationCount = 5; // Example notification count
+    bool _isLoading = false; // Loading indicator
 
-  // Define the selected theme variable
-  ThemeMode _selectedTheme = ThemeMode.light; // Default is light theme
 
-  void _showThemeSelectionDialog(
-      BuildContext context, StateSetter setModalState) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return ThemeSelectionDialog(
-          initialTheme: _selectedTheme, // Pass the current theme
-          onThemeChanged: (ThemeMode newTheme) {
-            // Set the selected theme and update both the parent widget and modal UI
-            setState(() {
-              _selectedTheme = newTheme;
-            });
-            setModalState(() {}); // Rebuild the modal to reflect changes
-          },
-        );
-      },
-    );
-  }
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +35,11 @@ class _ShowModalState extends State<ShowModal> {
                   children: [
                     // Background Container for the modal
                     Container(
-                      height: 750,
+                      height: 700,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Color(0xFF1A2344).withOpacity(0.8),
+                            Color(0xFF1A2344).withOpacity(0.9),
                             Color.fromARGB(255, 125, 32, 142).withOpacity(0.8),
                             Colors.purple.withOpacity(0.8),
                             Color.fromARGB(255, 151, 44, 170).withOpacity(0.8),
@@ -108,7 +89,7 @@ class _ShowModalState extends State<ShowModal> {
                       right: 20,
                       child: Container(
                         padding: const EdgeInsets.all(16.0),
-                        height: 260,
+                        height: 160,
                         decoration: BoxDecoration(
                           color: Color(0xFFBA90C6),
                           borderRadius: BorderRadius.circular(12),
@@ -140,21 +121,13 @@ class _ShowModalState extends State<ShowModal> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'alaa.elkeshky33@gmail.com',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
+                                   
                                   ],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 20),
-
-                            // ListTile for selecting temperature units
+                            //const SizedBox(height: 10),
+ // ListTile for selecting temperature units
                             ListTile(
                               leading: const Icon(Icons.thermostat,
                                   color: Colors.white),
@@ -166,27 +139,7 @@ class _ShowModalState extends State<ShowModal> {
                                   style: TextStyle(color: Colors.white)),
                               onTap: () {
                                 // Show temperature unit selection dialog
-                                _showTemperatureUnitDialog(
-                                    context);
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.brightness_6,
-                                  color: Colors.white),
-                              title: const Text(
-                                'App Theme',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              subtitle: Text(
-                                _selectedTheme == ThemeMode.light
-                                    ? 'Light'
-                                    : 'Dark',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              onTap: () {
-                                // Show theme selection dialog
-                                _showThemeSelectionDialog(
-                                    context, setModalState);
+                                _showTemperatureUnitDialog(context);
                               },
                             ),
                           ],
@@ -195,7 +148,7 @@ class _ShowModalState extends State<ShowModal> {
                     ),
 
                    const Positioned(
-                      top: 350, // Adjust this value to control the overlap
+                      top: 250, // Adjust this value to control the overlap
                       left: 20,
                       right: 20,
                       child: const Text(
@@ -208,13 +161,13 @@ class _ShowModalState extends State<ShowModal> {
                       ),
                     ),
                     Positioned(
-                      top: 400, // Adjust this value to control the overlap
+                      top: 300, // Adjust this value to control the overlap
                       left: 20,
                       right: 20,
                       child: Container(
                         padding: const EdgeInsets.all(16.0),
                         height:
-                            300, // Adjust the height of the notification container
+                            350, // Adjust the height of the notification container
                         decoration: BoxDecoration(
                           color: Color(0xFFBA90C6),
                           borderRadius: BorderRadius.circular(12),
@@ -309,44 +262,70 @@ class _ShowModalState extends State<ShowModal> {
   }
 
   void _showTemperatureUnitDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Select Temperature Unit"),
-        content: Consumer<TemperatureUnitProvider>(
-          builder: (context, tempUnitProvider, child) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioListTile<String>(
-                  title: const Text('Celsius'),
-                  value: 'Celsius',
-                  groupValue: tempUnitProvider.selectedUnit,
-                  onChanged: (String? value) {
-                    if (value != null) {
-                      tempUnitProvider.setUnit(value);
-                      Navigator.pop(context); // Close the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Select Temperature Unit"),
+          backgroundColor: Color(0xFFBA90C6),
+          content: Consumer<TemperatureUnitProvider>(
+            builder: (context, tempUnitProvider, child) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioListTile<String>(
+                    title: const Text('Celsius'),
+                    value: 'Celsius',
+                    groupValue: tempUnitProvider.selectedUnit,
+                    onChanged: (String? value) {
+                      if (value != null) {
+                      setState(() {
+                        tempUnitProvider.setUnit(value); // Update provider
+                        _selectedUnit = value; // Update local state
+                      });
                     }
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Fahrenheit'),
-                  value: 'Fahrenheit',
-                  groupValue: tempUnitProvider.selectedUnit,
-                  onChanged: (String? value) {
-                    if (value != null) {
-                      tempUnitProvider.setUnit(value);
-                      Navigator.pop(context); // Close the dialog
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('Fahrenheit'),
+                    value: 'Fahrenheit',
+                    groupValue: tempUnitProvider.selectedUnit,
+                    onChanged: (String? value) {
+                      if (value != null) {
+                      setState(() {
+                        tempUnitProvider.setUnit(value); // Update provider
+                        _selectedUnit = value; // Update local state
+                      });
                     }
-                  },
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    },
-  );
-}
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      // Apply temperature unit and show loading
+                      tempUnitProvider.setUnit(_selectedUnit);
+                      Navigator.of(context).pop(); // Close dialog
+                      Navigator.of(context).pop(); // Close modal
+                      
+                      setState(() {
+                        _isLoading = true; // Show loading indicator
+                      });
+
+                      // Simulate temperature conversion delay
+                      Future.delayed(const Duration(seconds: 2), () {
+                        setState(() {
+                          _isLoading = false; // Hide loading indicator
+                        });
+                      });
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 }
