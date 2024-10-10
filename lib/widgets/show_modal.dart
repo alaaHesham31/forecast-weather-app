@@ -13,10 +13,7 @@ class ShowModal extends StatefulWidget {
 class _ShowModalState extends State<ShowModal> {
   String _selectedUnit = 'Celsius'; // Default temperature unit
   int _notificationCount = 5; // Example notification count
-    bool _isLoading = false; // Loading indicator
-
-
- 
+  bool _isLoading = false; // Loading indicator
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +101,8 @@ class _ShowModalState extends State<ShowModal> {
                                   children: [
                                     const CircleAvatar(
                                       radius: 28,
-                                      backgroundImage:
-                                          AssetImage('assets/images/user-avatar.png'),
+                                      backgroundImage: AssetImage(
+                                          'assets/images/user-avatar.png'),
                                     ),
                                   ],
                                 ),
@@ -121,13 +118,12 @@ class _ShowModalState extends State<ShowModal> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                   
                                   ],
                                 ),
                               ],
                             ),
                             //const SizedBox(height: 10),
- // ListTile for selecting temperature units
+                            // ListTile for selecting temperature units
                             ListTile(
                               leading: const Icon(Icons.thermostat,
                                   color: Colors.white),
@@ -147,7 +143,7 @@ class _ShowModalState extends State<ShowModal> {
                       ),
                     ),
 
-                   const Positioned(
+                    const Positioned(
                       top: 250, // Adjust this value to control the overlap
                       left: 20,
                       right: 20,
@@ -230,7 +226,6 @@ class _ShowModalState extends State<ShowModal> {
           const CircleAvatar(
             radius: 20,
             backgroundImage: AssetImage('assets/images/user_avatar.png'),
-            
           ),
           if (_notificationCount > 0) // Show badge if notifications exist
             Positioned(
@@ -266,7 +261,20 @@ class _ShowModalState extends State<ShowModal> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Select Temperature Unit"),
+          icon: const Icon(Icons.thermostat_outlined,
+              color: Colors.white, size: 32),
+          title: const Column(
+            children: [
+              Center(
+                  child: Text('Temperature Unit',
+                      style: TextStyle(color: Colors.white, fontSize: 24))),
+              SizedBox(height: 8),
+              Text(
+                  'Changing this setting will update across all of your account settings.',
+                  style: TextStyle(
+                      color: Color.fromARGB(255, 220, 218, 218), fontSize: 16)),
+            ],
+          ),
           backgroundColor: Color(0xFFBA90C6),
           content: Consumer<TemperatureUnitProvider>(
             builder: (context, tempUnitProvider, child) {
@@ -274,29 +282,35 @@ class _ShowModalState extends State<ShowModal> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RadioListTile<String>(
-                    title: const Text('Celsius'),
+                    title: const Text(
+                      'Celsius',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     value: 'Celsius',
                     groupValue: tempUnitProvider.selectedUnit,
                     onChanged: (String? value) {
                       if (value != null) {
-                      setState(() {
-                        tempUnitProvider.setUnit(value); // Update provider
-                        _selectedUnit = value; // Update local state
-                      });
-                    }
+                        setState(() {
+                          tempUnitProvider.setUnit(value); // Update provider
+                          _selectedUnit = value; // Update local state
+                        });
+                      }
                     },
                   ),
                   RadioListTile<String>(
-                    title: const Text('Fahrenheit'),
+                    title: const Text(
+                      'Fahrenheit',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     value: 'Fahrenheit',
                     groupValue: tempUnitProvider.selectedUnit,
                     onChanged: (String? value) {
                       if (value != null) {
-                      setState(() {
-                        tempUnitProvider.setUnit(value); // Update provider
-                        _selectedUnit = value; // Update local state
-                      });
-                    }
+                        setState(() {
+                          tempUnitProvider.setUnit(value); // Update provider
+                          _selectedUnit = value; // Update local state
+                        });
+                      }
                     },
                   ),
                   const SizedBox(height: 20),
@@ -306,7 +320,7 @@ class _ShowModalState extends State<ShowModal> {
                       tempUnitProvider.setUnit(_selectedUnit);
                       Navigator.of(context).pop(); // Close dialog
                       Navigator.of(context).pop(); // Close modal
-                      
+
                       setState(() {
                         _isLoading = true; // Show loading indicator
                       });
