@@ -4,16 +4,23 @@ import '../screens/search_page.dart'; // Assuming you have this file already
 
 class SearchBarWidget extends StatelessWidget {
   final String cityName;
-  const SearchBarWidget({Key? key, required this.cityName}) : super(key: key);
+  final Function(String) onCitySelected; // Callback function to handle selected city
+
+  const SearchBarWidget({Key? key, required this.cityName, required this.onCitySelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // When the search bar is tapped, navigate to the search page
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) =>  SearchPage(cityName: '$cityName')),
+      onTap: () async {
+        // Navigate to the SearchPage and wait for the selected city
+        final result = await Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => SearchPage(cityName: cityName)),
         );
+
+        if (result != null && result is Map<String, dynamic>) {
+          final selectedCity = result['city'];
+          onCitySelected(selectedCity); // Pass the selected city back to the HomeScreen
+        }
       },
       child: Container(
         height: 65,
@@ -24,7 +31,7 @@ class SearchBarWidget extends StatelessWidget {
           border: Border.all(
             color: Colors.white, // Border color
             width: 1.0, // Border width
-          ), 
+          ),
         ),
         child: Row(
           children: [
@@ -32,7 +39,7 @@ class SearchBarWidget extends StatelessWidget {
             const SizedBox(width: 8.0),
             Expanded(
               child: Text(
-                cityName,
+                cityName.isEmpty ? 'Select a city' : cityName, // Display selected city name
                 style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),

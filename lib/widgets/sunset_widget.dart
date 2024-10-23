@@ -1,10 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SunsetWidget extends StatelessWidget {
-  const SunsetWidget({super.key});
+  final Map<String, dynamic>? weatherData;
+
+  const SunsetWidget({super.key, this.weatherData});
 
   @override
   Widget build(BuildContext context) {
+    String sunsetTimeString = weatherData?['forecast']['forecastday'][0]['astro']['sunset'] ?? 'Unknown';
+
+    // Function to calculate hours left until sunset
+    String calculateHoursLeftUntilSunset(String sunsetTimeString) {
+      if (sunsetTimeString == 'Unknown') return 'Unknown';
+
+      try {
+        // Parse the sunset time from the string (e.g., '06:45 PM')
+        DateFormat format = DateFormat('h:mm a');  // Correct 12-hour format
+        DateTime sunsetTime = format.parse(sunsetTimeString);
+
+        // Get the current time
+        DateTime now = DateTime.now();
+
+        // Create a DateTime object for today’s sunset
+        DateTime todaySunset = DateTime(now.year, now.month, now.day, sunsetTime.hour, sunsetTime.minute);
+
+        // If the sunset time is before now (meaning it's tomorrow's sunset), add a day
+        if (todaySunset.isBefore(now)) {
+          todaySunset = todaySunset.add(Duration(days: 1));
+        }
+
+        // Calculate the difference in hours and minutes between now and sunset
+        Duration difference = todaySunset.difference(now);
+        int hoursLeft = difference.inHours;
+
+        return '$hoursLeft hours left';
+      } catch (e) {
+        // Handle any errors in parsing
+        return 'Could not calculate time';
+      }
+    }
+
+    String hoursLeftUntilSunset = calculateHoursLeftUntilSunset(sunsetTimeString);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(top: 20.0),
@@ -34,20 +72,20 @@ class SunsetWidget extends StatelessWidget {
                           image: const DecorationImage(
                               image: AssetImage('assets/images/sunset.png'))),
                     ),
-                   const  SizedBox(
+                    const SizedBox(
                       width: 15,
                     ),
-                     const Center(
+                    Center(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Sunset',
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          SizedBox(height: 4,),
+                          const SizedBox(height: 4,),
                           Text(
-                            '6:35 PM',
+                            sunsetTimeString,
                             style: TextStyle(color: Colors.white, fontSize: 22),
                           ),
                         ],
@@ -55,11 +93,11 @@ class SunsetWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-               const Spacer(),
-               const Text(
-                  ' in 5 hours',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                )
+                const Spacer(),
+                Text(
+                  hoursLeftUntilSunset, // Display the time difference
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
               ],
             ),
           ),

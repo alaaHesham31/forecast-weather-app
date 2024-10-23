@@ -1,7 +1,6 @@
 import 'package:demo_weather_app/services/temperature_unit_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'temperature_unit_dialog.dart'; // Import the temperature dialog widget
 
 class ShowModal extends StatefulWidget {
   const ShowModal({super.key});
@@ -12,7 +11,6 @@ class ShowModal extends StatefulWidget {
 
 class _ShowModalState extends State<ShowModal> {
   String _selectedUnit = 'Celsius'; // Default temperature unit
-  int _notificationCount = 5; // Example notification count
   bool _isLoading = false; // Loading indicator
 
   @override
@@ -32,7 +30,7 @@ class _ShowModalState extends State<ShowModal> {
                   children: [
                     // Background Container for the modal
                     Container(
-                      height: 700,
+                      height: 280,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -100,7 +98,7 @@ class _ShowModalState extends State<ShowModal> {
                                 Stack(
                                   children: [
                                     const CircleAvatar(
-                                      radius: 28,
+                                      radius: 24,
                                       backgroundImage: AssetImage(
                                           'assets/images/user-avatar.png'),
                                     ),
@@ -111,7 +109,7 @@ class _ShowModalState extends State<ShowModal> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: const [
                                     Text(
-                                      'Alaa Elkeshky',
+                                      'Joe Doe',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 18,
@@ -142,78 +140,6 @@ class _ShowModalState extends State<ShowModal> {
                         ),
                       ),
                     ),
-
-                    const Positioned(
-                      top: 250, // Adjust this value to control the overlap
-                      left: 20,
-                      right: 20,
-                      child: const Text(
-                        "Notifications",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 300, // Adjust this value to control the overlap
-                      left: 20,
-                      right: 20,
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        height:
-                            350, // Adjust the height of the notification container
-                        decoration: BoxDecoration(
-                          color: Color(0xFFBA90C6),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Recent Notifications",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 18),
-                            ),
-                            const SizedBox(height: 10),
-                            // Wrap the ListView in Expanded so it can scroll within the available space
-                            Expanded(
-                              child: Scrollbar(
-                                thumbVisibility:
-                                    true, // Makes the scrollbar always visible
-                                thickness:
-                                    6, // Set the thickness of the scrollbar
-                                radius: const Radius.circular(
-                                    10), // Make the scrollbar curved
-                                child: ListView.builder(
-                                  itemCount:
-                                      10, // Example number of notifications
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      leading: const Icon(Icons.notifications,
-                                          color: Colors.white),
-                                      title: Text(
-                                        'Notification #$index',
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                      subtitle: const Text(
-                                        'This is the detail of the notification.',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      onTap: () {
-                                        // Define what happens when a notification is tapped
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ],
                 );
               },
@@ -221,38 +147,24 @@ class _ShowModalState extends State<ShowModal> {
           },
         );
       },
-      child: Stack(
-        children: [
-          const CircleAvatar(
-            radius: 20,
-            backgroundImage: AssetImage('assets/images/user_avatar.png'),
-          ),
-          if (_notificationCount > 0) // Show badge if notifications exist
-            Positioned(
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 20,
-                  minHeight: 20,
-                ),
-                child: Text(
-                  '$_notificationCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-        ],
+     child: Stack(
+  alignment: Alignment.center, // Align children to the center
+  children: [
+    const CircleAvatar(
+      radius: 20,
+    ),
+    Container(
+      padding: const EdgeInsets.all(4),
+      child: const Icon(
+        Icons.notifications, // Notification icon
+        size: 24,            // Size of the icon
+        color: Color.fromARGB(255, 42, 35, 35),  // Icon color
       ),
+    ),
+  ],
+)
+
+
     );
   }
 

@@ -4,9 +4,13 @@ import 'package:lottie/lottie.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+// Notification setup
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 class SplashScreen extends StatefulWidget {
-  
   const SplashScreen({super.key});
 
   @override
@@ -17,90 +21,153 @@ class _SplashScreenState extends State<SplashScreen> {
   String _cityName = "Unknown";
   bool _isLoading = false; // Track loading state
 
-  // Function to ask for location permission and get the user's location
-Future<void> _getLocationAndNavigate(BuildContext context) async {
-  bool serviceEnabled;
-  LocationPermission permission;
-
-  setState(() {
-    _isLoading = true; // Start loading when fetching location
-  });
-
-  // Check if location services are enabled
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    setState(() {
-      _isLoading = false;
-    });
-    _showLocationDialog(
-      context,
-      "Location services are disabled. Please enable them.",
-      "Enable",
-      Geolocator.openLocationSettings,
-    );
-    return;
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotification(); // Initialize notifications
   }
 
-  // Check for location permissions
-  permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
+  // Initialize local notifications
+  Future<void> _initializeNotification() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher'); // Your app icon
+
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  // Function to show weather notification
+  Future<void> _showWeatherNotification() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'your_channel_id', // Channel ID
+      'your_channel_name', // Channel name
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Weather Alert', // Notification title
+      'Check out the latest weather update!', // Notification body
+      platformChannelSpecifics,
+    );
+  }
+
+  // Function to ask for location permission and get the user's location
+  Future<void> _getLocationAndNavigate(BuildContext context) async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    setState(() {
+      _isLoading = true; // Start loading when fetching location
+    });
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      setState(() {
+        _isLoading = false;
+      });
+      _showLocationDialog(
+        context,
+        "Location services are disabled. Please enable them.",
+        "Enable",
+        Geolocator.openLocationSettings,
+      );
+      return;
+    }
+
+    // Check for location permissions
+    permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Location permissions are denied.")),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      setState(() {
+        _isLoading = false;
+      });
+      _showLocationDialog(
+        context,
+        "Location permissions are permanently denied. Please enable them in settings.",
+        "Open Settings",
+        Geolocator.openAppSettings,
+      );
+      return;
+    }
+
+    // Get the current position
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    // Get the city name from the coordinates
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude, position.longitude);
+
+    if (placemarks.isNotEmpty) {
+      setState(() {
+        String? cityName = placemarks[0].administrativeArea ?? "City not found";
+        if (cityName.contains("Government")) {
+          cityName = cityName.replaceAll("Government", "").trim();
+        }
+
+        _cityName = cityName; // Assign the processed city name
+        _isLoading = false;
+      });
+
+      // Navigate to HomeScreen and pass the city name
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(cityName: _cityName),
+        ),
+      );
+
+      // Register the background task for notification
+      Workmanager().registerOneOffTask("weatherNotificationTask", "weatherNotificationTask");
+    } else {
       setState(() {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Location permissions are denied.")),
+        const SnackBar(content: Text("Failed to retrieve city name.")),
       );
-      return;
     }
+    // Register daily summary notification task once city is detected
+  Workmanager().registerPeriodicTask(
+    "dailyWeatherSummary",
+    "dailyWeatherSummary",
+    frequency: const Duration(hours: 24), // Daily
+    initialDelay: const Duration(hours: 8), // 8 AM every day
+  );
+
+  // Example for severe weather alerts or other notifications
+  Workmanager().registerOneOffTask("severeWeatherAlertTask", "severeWeatherAlertTask");
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => HomeScreen(cityName: _cityName),
+    ),
+  );
   }
-
-  if (permission == LocationPermission.deniedForever) {
-    setState(() {
-      _isLoading = false;
-    });
-    _showLocationDialog(
-      context,
-      "Location permissions are permanently denied. Please enable them in settings.",
-      "Open Settings",
-      Geolocator.openAppSettings,
-    );
-    return;
-  }
-
-  // Get the current position
-  Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high);
-
-  // Get the city name from the coordinates
-  List<Placemark> placemarks = await placemarkFromCoordinates(
-      position.latitude, position.longitude);
-
-  if (placemarks.isNotEmpty) {
-    setState(() {
-      // Use administrativeArea (e.g., province or state) as the main city
-      _cityName = placemarks[0].administrativeArea ?? "City not found";
-      _isLoading = false;
-    });
-
-    // Navigate to HomeScreen and pass the city name
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(cityName: _cityName),
-      ),
-    );
-  } else {
-    setState(() {
-      _isLoading = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Failed to retrieve city name.")),
-    );
-  }
-}
-
 
   // Helper function to show dialog for location issues
   void _showLocationDialog(
@@ -109,7 +176,7 @@ Future<void> _getLocationAndNavigate(BuildContext context) async {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Location Required"),
+          title:const Text("Location Required"),
           content: Text(message),
           actions: [
             TextButton(
@@ -118,7 +185,7 @@ Future<void> _getLocationAndNavigate(BuildContext context) async {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
           ],
         );
@@ -165,7 +232,7 @@ Future<void> _getLocationAndNavigate(BuildContext context) async {
                 "ForeCasts",
                 style: GoogleFonts.lato(
                   fontSize: 60,
-                  color: Color.fromARGB(255, 255, 203, 59), // Yellow color
+                  color: const Color.fromARGB(255, 255, 203, 59), // Yellow color
                 ),
               ),
 
@@ -175,10 +242,10 @@ Future<void> _getLocationAndNavigate(BuildContext context) async {
                 onPressed: () {
                   // Ask for location and navigate to HomeScreen
                   _getLocationAndNavigate(context);
+                  _showWeatherNotification(); // Show notification immediately for testing
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Color.fromARGB(255, 255, 203, 59), // Same yellow as the text
+                  backgroundColor: const Color.fromARGB(255, 255, 203, 59), // Same yellow as the text
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30), // Rounded corners
                   ),
@@ -189,7 +256,7 @@ Future<void> _getLocationAndNavigate(BuildContext context) async {
                   'Get Start',
                   style: GoogleFonts.lato(
                     fontSize: 20,
-                    color: Color.fromARGB(255, 125, 32, 142), // Text color
+                    color: const Color.fromARGB(255, 125, 32, 142), // Text color
                   ),
                 ),
               ),
