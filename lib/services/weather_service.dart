@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 class WeatherService {
-  final String apiKey = '9a5423cb4b36403badb122219241310';
+  final String apiKey = 'ffbb02b6eef34eeaa44124223242710';
   final String forecastBaseUrl = 'http://api.weatherapi.com/v1/forecast.json';
   final String searchBaseUrl = 'http://api.weatherapi.com/v1/search.json';
   final String reverseGeocodeUrl = 'http://api.weatherapi.com/v1/current.json';

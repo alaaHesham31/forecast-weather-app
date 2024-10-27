@@ -53,12 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
       android: androidPlatformChannelSpecifics,
     );
 
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Weather Alert', // Notification title
-      'Check out the latest weather update!', // Notification body
-      platformChannelSpecifics,
-    );
+   
   }
 
   // Function to ask for location permission and get the user's location

@@ -156,9 +156,9 @@ class _ShowModalState extends State<ShowModal> {
     Container(
       padding: const EdgeInsets.all(4),
       child: const Icon(
-        Icons.notifications, // Notification icon
-        size: 24,            // Size of the icon
-        color: Color.fromARGB(255, 42, 35, 35),  // Icon color
+        Icons.settings, 
+        size: 24,           
+        color: Color.fromARGB(255, 42, 35, 35), 
       ),
     ),
   ],
